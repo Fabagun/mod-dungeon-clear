@@ -146,7 +146,8 @@ namespace DcRezDecision
         TimedOut,        // out-of-combat recovery clock expired
         BlockedWaiting,  // the instance forbids resurrection — hold, it may lift
         BlockedStandDown, // ...it did not lift; carry on short-handed, do not disable
-        UnsafeStandDown   // every corpse lies among idle hostiles; carry on short-handed
+        UnsafeStandDown,  // every corpse lies among idle hostiles; carry on short-handed
+        DeathLoop         // members keep dying again after being raised (DC_REZ_LOOP_*) — end the run
     };
 
     struct Result

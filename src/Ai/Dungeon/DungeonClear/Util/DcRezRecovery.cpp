@@ -315,6 +315,12 @@ namespace
             {
                 run.noRezzerSinceMs = 0;
                 run.noRezzerQuietSinceMs = 0;
+                if (run.rezEpisodeOpen)
+                {
+                    run.rezEpisodeOpen = false;
+                    run.rezEpisodeEndMs = now ? now : 1;
+                }
+                run.rezLastDeadCount = 0;
             }
             return plan;  // None / NoDeaths
         }
@@ -332,6 +338,34 @@ namespace
             // Feature off: hand the party-died trigger its classic verdict.
             plan.verdict.outcome = DcRezDecision::Outcome::Disable;
             plan.verdict.reason = DcRezDecision::Reason::Disabled;
+            return plan;
+        }
+
+        // The death-loop bound (see DC_REZ_LOOP_EXTRA_DEATHS). Counted from the
+        // corpse count, so every member evaluating in the same tick reads the same
+        // total and a raise (fewer corpses) never subtracts.
+        uint32 deadNow = 0;
+        for (Member const& m : members)
+            if (m.isDead)
+                ++deadNow;
+        if (mutate)
+        {
+            if (!run.rezEpisodeOpen)
+            {
+                run.rezEpisodeOpen = true;
+                bool const reopened = run.rezEpisodeEndMs &&
+                                      getMSTimeDiff(run.rezEpisodeEndMs, now) < DC_REZ_LOOP_REOPEN_MS;
+                if (!reopened)
+                    run.rezEpisodeDeaths = 0;
+            }
+            if (deadNow > run.rezLastDeadCount)
+                run.rezEpisodeDeaths += deadNow - run.rezLastDeadCount;
+            run.rezLastDeadCount = deadNow;
+        }
+        if (run.rezEpisodeDeaths > members.size() + DC_REZ_LOOP_EXTRA_DEATHS)
+        {
+            plan.verdict.outcome = DcRezDecision::Outcome::Disable;
+            plan.verdict.reason = DcRezDecision::Reason::DeathLoop;
             return plan;
         }
 

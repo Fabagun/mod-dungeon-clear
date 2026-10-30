@@ -266,6 +266,18 @@ constexpr uint32 DC_FLAGGED_NO_ENGAGE_GRACE_MS = 5000;
 constexpr uint32 DC_NO_REZZER_QUIET_GRACE_MS = 12000;
 constexpr uint32 DC_NO_REZZER_HOLD_MAX_MS    = 60000;
 
+// --- death loop ------------------------------------------------------------
+// A recovery that keeps losing members as fast as it raises them ends the run
+// instead of looping: once one episode has counted more deaths than the party has
+// members plus DC_REZ_LOOP_EXTRA_DEATHS, someone has died again after being
+// raised, several times over. A fight that kills half the raid and is won stays
+// far below it; a wipe is the Regroup verdict before it gets there. Every raise
+// counts, whoever casts it (the rez rung, the bench's EmergencyRez, a player).
+// An episode that reopens within DC_REZ_LOOP_REOPEN_MS of the party being restored
+// is the same episode: the raised members died again before anyone could rest.
+constexpr uint32 DC_REZ_LOOP_EXTRA_DEATHS = 2;
+constexpr uint32 DC_REZ_LOOP_REOPEN_MS    = 30000;
+
 // --- the instance refuses the spell ----------------------------------------
 // How long the run holds over a corpse the instance will not let anyone raise
 // before it gives up waiting and clears short-handed (DcRezDecision's rezBlocked

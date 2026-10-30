@@ -2854,6 +2854,14 @@ bool DungeonClearDisableOnDeathAction::Execute(Event /*event*/)
             reason = "Couldn't get " + deadName + " resurrected in time \xe2\x80\x94 dungeon clear "
                      "disabled. Type 'dc on' when ready to resume.";
             break;
+        case DcRezDecision::Reason::DeathLoop:
+            reason = "The party keeps dying again after each resurrection (" + deadName +
+                     " is down again) \xe2\x80\x94 something here kills out of combat. Dungeon clear "
+                     "disabled. Move away and type 'dc on' when ready to resume.";
+            LOG_INFO("playerbots.dungeonclear",
+                     "[DC:{}] death loop: more deaths than members within one recovery -> run disabled",
+                     bot ? bot->GetName() : std::string("?"));
+            break;
         default:
             // Feature off (Reason::Disabled) or a race resolved the deaths
             // between trigger and action — the classic message.

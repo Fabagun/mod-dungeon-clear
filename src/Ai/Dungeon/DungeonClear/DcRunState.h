@@ -175,6 +175,16 @@ struct DcRunState
     // DcRezDecision.h); 0 = the spell is castable. Cleared the moment the block
     // lifts, so a boss mid-reset gets a fresh wait rather than a stale verdict.
     uint32 rezBlockedSinceMs    = 0;
+    // The death-loop bound (DC_REZ_LOOP_*). Deaths are counted per recovery
+    // episode (first death -> everyone up again); an episode that reopens within
+    // DC_REZ_LOOP_REOPEN_MS of closing keeps the count. ZG, tr-20261030-183848-75:
+    // Venoxis' acid pools outlived him, the raid rested in them and raise-then-die
+    // ran 298 times until the bench watchdog ended the run; a player-led run has
+    // no such watchdog.
+    bool   rezEpisodeOpen       = false;  // a death seen since the last "party restored"
+    uint32 rezEpisodeEndMs      = 0;      // getMSTime() the last episode closed
+    uint32 rezEpisodeDeaths     = 0;      // deaths counted in the (chained) episode
+    uint32 rezLastDeadCount     = 0;      // corpses at the previous evaluation
 
     // === raid boss stand-down (leader-owned, read cross-bot) ======================
     // The hysteresis state + per-tick memo behind DcBossStandDown::IsActive: while
