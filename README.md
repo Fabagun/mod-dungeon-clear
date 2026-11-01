@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="squidbots-logo.png" alt="SquidBots" width="260">
+</p>
+
 # mod-dungeon-clear
 
 > **⚠️ SquidBots / Conquest of Azeroth build.** This branch is a customised
