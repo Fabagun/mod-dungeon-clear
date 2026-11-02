@@ -1889,8 +1889,28 @@ DungeonClearEngageActionBase::EventRest DungeonClearEngageActionBase::EventRestD
         return EventRest::None;
     if (BotBelowRest(bot, minHp, minMp))
         return EventRest::Yield;
-    if (!DcPartyState::IsPartyReady(bot, minHp, minMp, /*maxSpread*/ 100000.0f))
+    // Same 120s bound as the between-pulls gate (DcPartyState::IsBetweenPullsReady):
+    // a member the healer never tops up (a human who does not eat, a bot below the
+    // DC floor but above its healer's out-of-combat threshold) held a set-piece
+    // forever on "Waiting on X (low HP)".
+    DcRunState& run = DcRun::Of(context);
+    bool const ready = DcPartyState::IsPartyReady(bot, minHp, minMp, /*maxSpread*/ 100000.0f);
+    if (ready || bot->IsInCombat())
+    {
+        run.restWaitSinceMs = 0;
+        run.restWaitReleased = false;
+        return ready ? EventRest::None : EventRest::Hold;
+    }
+    if (run.restWaitReleased)
+        return EventRest::None;
+    uint32 const now = getMSTime();
+    if (run.restWaitSinceMs == 0)
+        run.restWaitSinceMs = now ? now : 1;
+    if (!DungeonClearMath::RestWaitExpired(run.restWaitSinceMs, now, DC_REST_WAIT_MAX_MS))
         return EventRest::Hold;
+    run.restWaitReleased = true;
+    LOG_INFO("playerbots.dungeonclear", "[DC:{}] event rest wait: {}s -> going on without topping up",
+             bot->GetName(), DC_REST_WAIT_MAX_MS / 1000);
     return EventRest::None;
 }
 
