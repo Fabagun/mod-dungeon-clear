@@ -57,7 +57,9 @@
 #include "Timer.h"
 #include "Util/DcPlayerbotsConfig.h"
 #include "World.h"
+#include "GameTime.h"
 #include "Ai/Dungeon/DungeonClear/Data/BossPullbackRegistry.h"
+#include "Ai/Dungeon/DungeonClear/Data/BossSpawnIndex.h"
 #include "Ai/Dungeon/DungeonClear/Data/DcNeverTargetRegistry.h"
 #include "Ai/Dungeon/DungeonClear/Data/DcTargetExclusionRegistry.h"
 #include "Ai/Dungeon/DungeonClear/Data/DungeonBossInfo.h"
@@ -1198,6 +1200,48 @@ InstanceScript* DcTargeting::GetInstanceScript(Player* bot)
         return nullptr;
     InstanceMap* im = map->ToInstanceMap();
     return im ? im->GetInstanceScript() : nullptr;
+}
+
+namespace
+{
+    // Every spawn of `entry` dead or on a respawn timer, and at least one seen
+    // that way. A boss with no spawn loaded and no timer is unreached, not done.
+    bool BossSpawnsDone(Map* map, uint32 entry)
+    {
+        bool done = false;
+        time_t const now = GameTime::GetGameTime().count();
+        for (ObjectGuid::LowType spawnId : BossSpawnIndex::SpawnIds(map->GetId(), entry))
+        {
+            auto const range = map->GetCreatureBySpawnIdStore().equal_range(spawnId);
+            for (auto it = range.first; it != range.second; ++it)
+            {
+                if (it->second->IsAlive())
+                    return false;
+                done = true;
+            }
+            if (map->GetCreatureRespawnTime(spawnId) > now)
+                done = true;
+        }
+        return done;
+    }
+}
+
+uint32 DcTargeting::CompletedEncounterMask(Player* bot)
+{
+    if (InstanceScript* inst = GetInstanceScript(bot))
+        return inst->GetCompletedEncounterMask();
+    Map* map = bot ? bot->GetMap() : nullptr;
+    if (!map || !map->ToInstanceMap())
+        return 0u;
+
+    std::vector<DungeonBossInfo> const* bosses = &BossSpawnIndex::Get(map->GetId(), map->GetDifficulty());
+    if (bosses->empty())
+        bosses = &BossSpawnIndex::Get(map->GetId(), DUNGEON_DIFFICULTY_NORMAL);
+    uint32 mask = 0u;
+    for (DungeonBossInfo const& info : *bosses)
+        if (info.encounterIndex < 32 && BossSpawnsDone(map, info.entry))
+            mask |= 1u << info.encounterIndex;
+    return mask;
 }
 bool DcTargeting::ResetCompletionLatchesForNewInstance(Player* bot, AiObjectContext* context)
 {

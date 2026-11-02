@@ -240,6 +240,19 @@ public:
     // falling back to spawn-store creature scanning.
     static InstanceScript* GetInstanceScript(Player* bot);
 
+    // The completed-encounter mask (bit = DungeonEncounter.dbc encounterIndex)
+    // of the bot's instance. With an InstanceScript it is the script's own mask.
+    // An instance whose instance_template names no script never has one:
+    // Map::UpdateEncounterState writes the bit through the script and drops it
+    // otherwise. CoA's custom dungeons are that case (Vaults of the Inquisition
+    // 936, Road to De Other Side 937: script ''), so every kill there stayed
+    // invisible — test runs "allCleared" with bosses 0/2 and an empty timeline,
+    // the panel's boss rows "alive" then "missing". There the bits are read off
+    // the boss spawns themselves: a boss whose every spawn is dead or waiting
+    // on a respawn timer is done, the read the core's own CoA scripts make
+    // (CoAVaults.cpp BossDefeated).
+    static uint32 CompletedEncounterMask(Player* bot);
+
     // Wipe the run-scoped completion state (cleared anchors / skips / seen-boss
     // and seen-due-event bookkeeping / boss commit) the first time the bot is seen
     // in a NEW instance id, stamping "dungeon clear run instance" so it fires once
