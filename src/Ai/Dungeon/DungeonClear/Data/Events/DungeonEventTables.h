@@ -5786,6 +5786,10 @@ namespace DcKarazhan
 
 void RegisterKarazhanEvents(std::vector<DungeonEvent>& out);
 
+// Vaults of the Inquisition (map 936, CoA) — the Deceiver's seals. See
+// VaultsEvents.cpp.
+void RegisterVaultsEvents(std::vector<DungeonEvent>& out);
+
 // Is the Oculus flight driver due for `bot`'s map right now? Exposed for the rider
 // trigger, which runs on every member and must agree with the driver.
 bool OculusDriverDue(Player* bot);

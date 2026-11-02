@@ -928,6 +928,7 @@ namespace
             RegisterBlackrockDepthsHooks(t);
             RegisterBlackrockSpireHooks(t);
             RegisterSunkenTempleHooks(t);
+            RegisterVaultsHooks(t);
             return t;
         }();
         return kHooks;

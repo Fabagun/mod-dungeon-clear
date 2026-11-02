@@ -203,4 +203,9 @@ void RegisterOculusHooks(ObjectiveHookRegistry::HookTable& out);
 // Util/DcChessConductor.h.
 void RegisterKarazhanChessHooks(ObjectiveHookRegistry::HookTable& out);
 
+// Vaults of the Inquisition (map 936, CoA) — break the Deceiver's seal crystals
+// (id 64). Lives beside the event in VaultsEvents.cpp, which owns the map's
+// constants.
+void RegisterVaultsHooks(ObjectiveHookRegistry::HookTable& out);
+
 #endif

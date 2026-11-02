@@ -15,6 +15,10 @@
 
 AC_ADD_SCRIPT("${CMAKE_CURRENT_LIST_DIR}/src")
 
+# New files added: Data/Events/VaultsEvents.cpp
+#   (Vaults of the Inquisition, map 936, CoA — the leader breaks the Deceiver's
+#    three seal crystals by spell click so he becomes attackable; hook 64.)
+
 # New files added: Data/Events/BlackfathomDeepsEvents.cpp
 #   (Blackfathom Deeps, map 48 — four anchor routes, to Lady Sarevess, Gelihast,
 #    Kelris and Aku'mai, that keep the party on the main navmesh instead of the
