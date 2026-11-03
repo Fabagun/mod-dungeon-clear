@@ -1224,6 +1224,25 @@ namespace
         }
         return done;
     }
+
+    // instance id -> credited encounter bits, for instances with no script.
+    // Written from the map's update thread, read from any bot's: locked.
+    std::mutex gScriptlessCreditsLock;
+    std::unordered_map<uint32, uint32> gScriptlessCredits;
+}
+
+void DcTargeting::NoteScriptlessCredit(uint32 instanceId, uint32 encounterIndex)
+{
+    if (!instanceId || encounterIndex >= 32)
+        return;
+    std::lock_guard<std::mutex> guard(gScriptlessCreditsLock);
+    gScriptlessCredits[instanceId] |= 1u << encounterIndex;
+}
+
+void DcTargeting::ForgetScriptlessCredits(uint32 instanceId)
+{
+    std::lock_guard<std::mutex> guard(gScriptlessCreditsLock);
+    gScriptlessCredits.erase(instanceId);
 }
 
 uint32 DcTargeting::CompletedEncounterMask(Player* bot)
@@ -1241,6 +1260,12 @@ uint32 DcTargeting::CompletedEncounterMask(Player* bot)
     for (DungeonBossInfo const& info : *bosses)
         if (info.encounterIndex < 32 && BossSpawnsDone(map, info.entry))
             mask |= 1u << info.encounterIndex;
+
+    // A summoned boss is in neither list above; its credited kill is.
+    std::lock_guard<std::mutex> guard(gScriptlessCreditsLock);
+    auto const it = gScriptlessCredits.find(map->GetInstanceId());
+    if (it != gScriptlessCredits.end())
+        mask |= it->second;
     return mask;
 }
 bool DcTargeting::ResetCompletionLatchesForNewInstance(Player* bot, AiObjectContext* context)

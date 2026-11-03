@@ -18,6 +18,10 @@ AC_ADD_SCRIPT("${CMAKE_CURRENT_LIST_DIR}/src")
 # New files added: Data/Events/VaultsEvents.cpp
 #   (Vaults of the Inquisition, map 936, CoA — the leader breaks the Deceiver's
 #    three seal crystals by spell click so he becomes attackable; hook 64.)
+# New files added: Data/Events/RoadToDeOtherSideEvents.cpp
+#   (Road to De Other Side, map 937, CoA — the leader offers the three Bodies of
+#    Offering to the Quimera Portal, whose ritual summons the Chimeric Embryo;
+#    hook 69, roster patch adding the Embryo with his bit 2.)
 
 # New files added: Data/Events/BlackfathomDeepsEvents.cpp
 #   (Blackfathom Deeps, map 48 — four anchor routes, to Lady Sarevess, Gelihast,
