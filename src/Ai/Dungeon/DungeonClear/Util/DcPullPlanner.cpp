@@ -1085,22 +1085,24 @@ std::optional<Position> DcPullPlanner::ComputeSafeCamp(PlayerbotAI* botAI, Unit*
             continue;
         if (!bot->IsHostileTo(u))
             continue;
-        // On another floor (a pack on a ledge/ramp directly above or below): it
-        // can't aggro the camp fight, so it must not push the camp farther back.
-        // Same height gate the Dynamic decision and the corridor scans use, so
-        // placement and classification agree about what "near" means in 3D.
-        if (std::fabs(u->GetPositionZ() - target->GetPositionZ()) > DC_Z_LEVEL_TOLERANCE)
-            continue;
         if (u->GetExactDist2d(target) <= kPackRadius)
             continue;  // packmate — fought regardless of where camp sits
         others.push_back(u);
     }
 
+    // Clearance is measured in 3D, with no "other floor" exemption. The camp fight
+    // recruits through floors and walls: creature assistance (CallAssistance and its
+    // periodic re-call) is a 3D sphere with no LOS test. Gating on the TARGET's Z was
+    // also the wrong floor whenever camp and target stand at different heights.
+    // Live (tr-20261103-073207-16, Shadowfang Keep): courtyard target at Z 79.8, camp
+    // on the gate landing at Z 90.6 read "clearance 33.8yd" with a Wailing Guardsman
+    // 11yd away on the gallery above it; the gallery woke, then the floors past it,
+    // Silverlaine and Razorclaw with them. A pack truly a floor away is far in 3D too.
     auto clearanceAt = [&others](Position const& p) -> float
     {
         float nearest = std::numeric_limits<float>::max();
         for (Unit* u : others)
-            nearest = std::min(nearest, p.GetExactDist2d(u));
+            nearest = std::min(nearest, p.GetExactDist(u));
         return nearest;
     };
 
